@@ -16,7 +16,8 @@ public class AlertRabbit {
 
     public static void initProperties(String propertiesFileName) {
         prop = new Properties();
-        try (InputStream in = AlertRabbit.class.getClassLoader().getResourceAsStream(propertiesFileName)) {
+        try (InputStream in =
+                     AlertRabbit.class.getClassLoader().getResourceAsStream(propertiesFileName)) {
             prop.load(in);
         } catch (IOException ex) {
             System.out.println("Ошибка чтения конфигурационного файла: " + ex.getMessage());
