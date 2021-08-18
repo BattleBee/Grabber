@@ -15,7 +15,6 @@ import static org.quartz.SimpleScheduleBuilder.*;
 public class AlertRabbitDB {
 
     private static Properties properties;
-    private static Connection connection;
 
     /**
      * Считывает конфиг. файл
@@ -34,7 +33,8 @@ public class AlertRabbitDB {
     /**
      * Создает подключение к БД
      */
-    private static void initConnection() {
+    private static Connection initConnection() {
+        Connection connection = null;
         try {
             Class.forName(properties.getProperty("driver"));
             String url = properties.getProperty("url");
@@ -45,6 +45,7 @@ public class AlertRabbitDB {
             System.out.println(ex.getMessage());
             ex.printStackTrace();
         }
+        return connection;
     }
 
     /**
@@ -83,23 +84,24 @@ public class AlertRabbitDB {
     public static void main(String[] args) throws Exception {
         loadProperties("rabbit.properties"); // считываем данные properties файла
         int interval = Integer.parseInt(properties.getProperty("rabbit.interval")); //для удобства
-        initConnection(); // создаем соединение с БД
-        Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler(); // создаем планировщик
-        scheduler.start(); // запуск планировщика
-        JobDataMap data = new JobDataMap(); // содержит инфо о состоянии для экземпляров задания
-        data.put("connection", connection); // добавляет данные о соединении в карту данных задания
-        JobDetail job = newJob(Rabbit.class) // постановка задачи
-                .usingJobData(data) // добавление данных из JobDataMap data
-                .build(); // сборка задачи
-        SimpleScheduleBuilder times = simpleSchedule() // задатся рассписание
-                .withIntervalInSeconds(interval) // установка интервала для триггера
-                .repeatForever(); // бесконечное повторение триггера
-        Trigger trigger = newTrigger() // задается триггер для выполнения задачи
-                .startNow() // начало запуска отсчета интервала
-                .withSchedule(times) // интервал между выполнением (рассписание выполнения)
-                .build(); // сборка триггера
-        scheduler.scheduleJob(job, trigger); // добавляет задачу и триггер в планировщик
-        Thread.sleep(10000); //пауза на 10 секунд перед завершающей командой
-        scheduler.shutdown(); //останавливает триггеры и очищает ресурсы связанные с планировщиком
+        try (Connection connection = initConnection()) { // создаем соединение с БД
+            Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler(); // создаем планировщик
+            scheduler.start(); // запуск планировщика
+            JobDataMap data = new JobDataMap(); // содержит инфо о состоянии для экземпляров задания
+            data.put("connection", connection); // добавляет данные о соединении в карту задания
+            JobDetail job = newJob(Rabbit.class) // постановка задачи
+                    .usingJobData(data) // добавление данных из JobDataMap data
+                    .build(); // сборка задачи
+            SimpleScheduleBuilder times = simpleSchedule() // задатся рассписание
+                    .withIntervalInSeconds(interval) // установка интервала для триггера
+                    .repeatForever(); // бесконечное повторение триггера
+            Trigger trigger = newTrigger() // задается триггер для выполнения задачи
+                    .startNow() // начало запуска отсчета интервала
+                    .withSchedule(times) // интервал между выполнением (рассписание выполнения)
+                    .build(); // сборка триггера
+            scheduler.scheduleJob(job, trigger); // добавляет задачу и триггер в планировщик
+            Thread.sleep(10000); //пауза на 10 секунд перед завершающей командой
+            scheduler.shutdown(); //останавливает триггеры и очищает ресурсы планировщика
+        }
     }
 }
