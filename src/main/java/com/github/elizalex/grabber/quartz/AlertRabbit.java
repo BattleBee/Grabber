@@ -10,6 +10,9 @@ import static org.quartz.JobBuilder.*;
 import static org.quartz.TriggerBuilder.*;
 import static org.quartz.SimpleScheduleBuilder.*;
 
+/**
+ * 
+ */
 public class AlertRabbit {
 
     private static Properties properties;
@@ -34,8 +37,8 @@ public class AlertRabbit {
     public static class Rabbit implements Job {
 
         /**
-         * Метод содержит задание, которое необходимо выполнить.
-         * Вызывается планировщиком при срабатывании  триггера, связанного с заданием
+         * Метод содержит задание, которое выполняется при вызове метода.
+         * Вызывается планировщиком при срабатывании определенного триггера.
          * @param context параметры, информация о состоянии для экземпляров задания
          * @throws JobExecutionException - если при выполнении задания возникла
          * исключительная ситуация
@@ -53,16 +56,16 @@ public class AlertRabbit {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler(); // создаем планировщик
             scheduler.start(); // запуск планировщика
             JobDetail job = newJob(Rabbit.class).build(); // постановка задачи
-            SimpleScheduleBuilder times = simpleSchedule() // задатся рассписание
+            SimpleScheduleBuilder times = simpleSchedule() // задается расписание
                     .withIntervalInSeconds(interval) //интервал для триггера
                     .repeatForever(); // бесконечное повторение триггера
             Trigger trigger = newTrigger() // задается триггер для выполнения задачи
                     .startNow() // запуск отсчета интервала с момента запуска программы
-                    .withSchedule(times) // интервал срабатывания триггера (рассписание выполнения)
+                    .withSchedule(times) // интервал срабатывания триггера (расписание выполнения)
                     .build(); // сборка триггера
             scheduler.scheduleJob(job, trigger); // добавляет задачу и триггер в планировщик
         } catch (SchedulerException se) {
-            se.printStackTrace();
+            se.printStackTrace(); // отображает трассировку стека при исключении
         }
     }
 }

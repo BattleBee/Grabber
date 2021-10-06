@@ -67,14 +67,14 @@ public class AlertRabbitDB {
         @Override
         public void execute(JobExecutionContext context) throws JobExecutionException {
             System.out.println("Rabbit runs here ...");
-            // Чтобы получить connection из context используется следующий вызов.
+            // Чтобы получить connection из context, используется следующий вызов.
             Connection connection = (Connection) context.getJobDetail() // получаем JobDetail
                     .getJobDataMap() // // получаем объект JobDataMap связанный с заданием
                     .get("connection"); // получаем объект connection - соединение с БД.
             try (Statement statement = connection.createStatement()) { // создаем запрос в БД
                 statement.execute(
                         "insert into rabbit (created_date) values (current_timestamp)"
-                ); // добавляем значения в таблицу  БД
+                ); // добавляем значения в таблицу БД
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -92,12 +92,12 @@ public class AlertRabbitDB {
             JobDetail job = newJob(Rabbit.class) // постановка задачи
                     .usingJobData(data) // добавление данных из JobDataMap data
                     .build(); // сборка задачи
-            SimpleScheduleBuilder times = simpleSchedule() // задатся рассписание
+            SimpleScheduleBuilder times = simpleSchedule() // задается расписание
                     .withIntervalInSeconds(interval) // установка интервала для триггера
                     .repeatForever(); // бесконечное повторение триггера
             Trigger trigger = newTrigger() // задается триггер для выполнения задачи
                     .startNow() // начало запуска отсчета интервала
-                    .withSchedule(times) // интервал между выполнением (рассписание выполнения)
+                    .withSchedule(times) // интервал между выполнением (расписание выполнения)
                     .build(); // сборка триггера
             scheduler.scheduleJob(job, trigger); // добавляет задачу и триггер в планировщик
             Thread.sleep(10000); //пауза на 10 секунд перед завершающей командой
